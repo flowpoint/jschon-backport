@@ -13,7 +13,9 @@ from tests.strategies import *
 
 def evaluate(kwclass, kwvalue, instval):
     schema = JSONSchema(True)
-    kwclass(schema, kwvalue).evaluate(inst := JSON(instval), result := Result(schema, inst))
+    inst = JSON(instval)
+    result = Result(schema, inst)
+    kwclass(schema, kwvalue).evaluate(inst, result)
     return result.valid
 
 

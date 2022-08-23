@@ -183,7 +183,8 @@ class MaxContainsKeyword(Keyword):
     depends_on = "contains",
 
     def evaluate(self, instance: JSON, result: Result) -> None:
-        if contains := result.sibling(instance, "contains"):
+        contains = result.sibling(instance, "contains")
+        if contains:
             if contains.annotation is not None and len(contains.annotation) > self.json:
                 result.fail('The array has too many elements matching the '
                             f'"contains" subschema (maximum {self.json})')
@@ -195,7 +196,8 @@ class MinContainsKeyword(Keyword):
     depends_on = "contains", "maxContains",
 
     def evaluate(self, instance: JSON, result: Result) -> None:
-        if contains := result.sibling(instance, "contains"):
+        contains = result.sibling(instance, "contains")
+        if contains:
             contains_count = len(contains.annotation) \
                 if contains.annotation is not None \
                 else 0

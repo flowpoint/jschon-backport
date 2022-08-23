@@ -67,7 +67,7 @@ class Vocabulary:
 class Keyword:
     key: str = ...
 
-    instance_types: Tuple[str, ...] = "null", "boolean", "integer", "number", "string", "array", "object",
+    instance_types: Tuple[str, ...] = ("null", "boolean", "integer", "number", "string", "array", "object",)
     """The types of instance that the keyword can evaluate."""
 
     depends_on: Tuple[str, ...] = ()
@@ -78,7 +78,8 @@ class Keyword:
     def __init__(self, parentschema: JSONSchema, value: JSONCompatible):
         for base_cls in inspect.getmro(self.__class__):
             if issubclass(base_cls, ApplicatorMixin):
-                if (kwjson := base_cls.jsonify(parentschema, self.key, value)) is not None:
+                kwjson = base_cls.jsonify(parentschema, self.key, value)
+                if kwjson is not None:
                     break
         else:
             kwjson = JSON(value, parent=parentschema, key=self.key)

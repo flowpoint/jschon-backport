@@ -34,7 +34,9 @@ def ipv6_validator(value):
 
 def evaluate(format_attr, instval, assert_=True):
     schema = JSONSchema(True)
-    FormatKeyword(schema, format_attr).evaluate(inst := JSON(instval), result := Result(schema, inst))
+    inst = JSON(instval)
+    result = Result(schema, inst)
+    FormatKeyword(schema, format_attr).evaluate(inst, result)
     assert result.annotation == format_attr
     assert result._assert is assert_
     return result.valid

@@ -185,7 +185,8 @@ class JSONPointer(Sequence[str]):
 
             key = keys.popleft()
             try:
-                if (isjson := isinstance(value, JSON)) and value.type == "object" or \
+                isjson = isinstance(value, JSON)
+                if isjson and value.type == "object" or \
                         not isjson and isinstance(value, Mapping):
                     return resolve(value[key], keys)
 
@@ -261,7 +262,6 @@ class RelativeJSONPointer:
     def __new__(
             cls,
             value: str = None,
-            /,
             *,
             up: int = 0,
             ref: Union[str, JSONPointer] = '',
@@ -279,7 +279,8 @@ class RelativeJSONPointer:
         self = object.__new__(cls)
 
         if value is not None:
-            if not (match := RelativeJSONPointer._regex.fullmatch(value)):
+            match = RelativeJSONPointer._regex.fullmatch(value)
+            if not match:
                 raise RelativeJSONPointerError(f"'{value}' is not a valid relative JSON pointer")
 
             up, ref = match.group('up', 'ref')

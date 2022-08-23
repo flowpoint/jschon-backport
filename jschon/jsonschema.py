@@ -109,14 +109,15 @@ class JSONSchema(JSON):
 
             self._bootstrap(value)
 
-            kwclasses = {
-                key: kwclass for key in value
-                if (key not in self.keywords and  # skip bootstrapped keywords
-                    (kwclass := self.metaschema.kwclasses.get(key)))
-            }
+            kwclasses = {}
+            for key in value:
+                kwclass = self.metaschema.kwclasses.get(key)
+                if key not in self.keywords and kwclass: # skip bootstrapped keywords
+                    kwclasses[key] = kwclass 
 
             for kwclass in self._resolve_dependencies(kwclasses):
-                kw = kwclass(self, value[(key := kwclass.key)])
+                key = kwclass.key
+                kw = kwclass(self, value[key])
                 self.keywords[key] = kw
                 self.data[key] = kw.json
 
@@ -124,7 +125,7 @@ class JSONSchema(JSON):
                 self._resolve_references()
 
         else:
-            raise TypeError(f"{value=} is not JSONSchema-compatible")
+            raise TypeError(f"{str(value)} is not JSONSchema-compatible")
 
     def _bootstrap(self, value: Mapping[str, JSONCompatible]) -> None:
         from jschon.vocabulary.core import IdKeyword, SchemaKeyword, VocabularyKeyword
@@ -156,11 +157,14 @@ class JSONSchema(JSON):
 
     @staticmethod
     def _resolve_dependencies(kwclasses: Dict[str, KeywordClass]) -> Iterator[KeywordClass]:
-        dependencies = {
-            kwclass: [depclass for dep in kwclass.depends_on
-                      if (depclass := kwclasses.get(dep))]
-            for kwclass in kwclasses.values()
-        }
+        dependencies = {}
+        for kwclass in kwclasses.values():
+            dependencies[kwclass] = []
+            for dep in kwclass.depends_on:
+                depclass = kwclasses.get(dep)
+                if depclass:
+                    dependencies[kwclass].append(depclass)
+
         while dependencies:
             for kwclass, depclasses in dependencies.items():
                 if not depclasses:
@@ -225,13 +229,12 @@ class JSONSchema(JSON):
         """The schema's :class:`~jschon.vocabulary.Metaschema`."""
         from jschon.vocabulary import Metaschema
 
-        if (uri := self.metaschema_uri) is None:
+        uri = self.metaschema_uri
+        if uri is None:
             raise JSONSchemaError("The schema's metaschema URI has not been set")
 
-        if not isinstance(
-                metaschema := self.catalog.get_schema(uri, session='__meta__'),
-                Metaschema,
-        ):
+        metaschema = self.catalog.get_schema(uri, session='__meta__')
+        if not isinstance(metaschema, Metaschema):
             raise JSONSchemaError(f"The schema referenced by {uri} is not a metachema")
 
         return metaschema
@@ -300,7 +303,8 @@ class JSONSchema(JSON):
             node = node.parent
 
             if isinstance(node, JSONSchema) and node._uri is not None:
-                if fragment := node._uri.fragment:
+                fragment = node._uri.fragment
+                if fragment:
                     relpath = JSONPointer.parse_uri_fragment(fragment) / keys
                 else:
                     relpath = JSONPointer(keys)
@@ -384,12 +388,13 @@ class Result:
         if schema is None:
             schema = self.schema
 
-        self.children[key, instance.path] = (child := (cls or self.__class__)(
+        child = (cls or self.__class__)(
             schema,
             instance,
             parent=self,
             key=key,
-        ))
+        )
+        self.children[key, instance.path] = child
 
         try:
             yield child
@@ -473,8 +478,10 @@ class Result:
         if self._refschema is not None:
             return self._refschema.canonical_uri
 
-        if (schema_uri := self.schema.canonical_uri) is not None:
-            if fragment := schema_uri.fragment:
+        schema_uri = self.schema.canonical_uri
+        if schema_uri is not None:
+            fragment = schema_uri.fragment
+            if fragment: 
                 relpath = JSONPointer.parse_uri_fragment(fragment) / self.relpath
             else:
                 relpath = self.relpath

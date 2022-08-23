@@ -123,11 +123,12 @@ class Catalog:
             raise CatalogError from e
 
         uristr = str(uri)
-        candidates = [
-            (base_uristr, source)
-            for base_uri, source in self._uri_sources.items()
-            if uristr.startswith(base_uristr := str(base_uri))
-        ]
+        candidates = []
+        for base_uri, source in self._uri_sources.items():
+            base_uristr = str(base_uri)
+            if uristr.startswith(base_uristr):
+                candidates.append((base_uristr, source))
+
         if candidates:
             candidates.sort(key=lambda c: len(c[0]), reverse=True)
             base_uristr, source = candidates[0]

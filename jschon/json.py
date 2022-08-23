@@ -135,7 +135,7 @@ class JSON(MutableSequence['JSON'], MutableMapping[str, 'JSON']):
             }
 
         else:
-            raise TypeError(f"{value=} is not JSON-compatible")
+            raise TypeError(f"{str(value)} is not JSON-compatible")
 
     @cached_property
     def path(self) -> JSONPointer:

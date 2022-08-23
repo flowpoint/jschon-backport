@@ -27,7 +27,8 @@ class SchemaKeyword(Keyword):
         super().__init__(parentschema, value)
 
         try:
-            (uri := URI(value)).validate(require_scheme=True, require_normalized=True)
+            uri = URI(value)
+            uri.validate(require_scheme=True, require_normalized=True)
         except URIError as e:
             raise JSONSchemaError from e
 
@@ -44,13 +45,15 @@ class VocabularyKeyword(Keyword):
         if not isinstance(parentschema, Metaschema):
             return
 
-        if (core_vocab_uri := str(parentschema.core_vocabulary.uri)) not in value or \
+        core_vocab_uri = str(parentschema.core_vocabulary.uri)
+        if core_vocab_uri not in value or \
                 value[core_vocab_uri] is not True:
             raise JSONSchemaError(f'The "$vocabulary" keyword must list the core vocabulary with a value of true')
 
         for vocab_uri, vocab_required in value.items():
             try:
-                (vocab_uri := URI(vocab_uri)).validate(require_scheme=True, require_normalized=True)
+                vocab_uri = URI(vocab_uri)
+                vocab_uri.validate(require_scheme=True, require_normalized=True)
             except URIError as e:
                 raise JSONSchemaError from e
 
@@ -69,9 +72,11 @@ class IdKeyword(Keyword):
     def __init__(self, parentschema: JSONSchema, value: str):
         super().__init__(parentschema, value)
 
-        (uri := URI(value)).validate(require_normalized=True, allow_fragment=False)
+        uri = URI(value)
+        uri.validate(require_normalized=True, allow_fragment=False)
         if not uri.is_absolute():
-            if (base_uri := parentschema.base_uri) is not None:
+            base_uri = parentschema.base_uri
+            if base_uri is not None:
                 uri = uri.resolve(base_uri)
             else:
                 raise JSONSchemaError(f'No base URI against which to resolve the "$id" value "{value}"')
@@ -89,7 +94,8 @@ class RefKeyword(Keyword):
     def resolve(self) -> None:
         uri = URI(self.json.data)
         if not uri.has_absolute_base():
-            if (base_uri := self.parentschema.base_uri) is not None:
+            base_uri = self.parentschema.base_uri
+            if base_uri is not None:
                 uri = uri.resolve(base_uri)
             else:
                 raise JSONSchemaError(f'No base URI against which to resolve the "$ref" value "{uri}"')
@@ -110,7 +116,8 @@ class AnchorKeyword(Keyword):
     def __init__(self, parentschema: JSONSchema, value: str):
         super().__init__(parentschema, value)
 
-        if (base_uri := parentschema.base_uri) is not None:
+        base_uri = parentschema.base_uri
+        if base_uri is not None:
             uri = URI(f'{base_uri}#{value}')
         else:
             raise JSONSchemaError(f'No base URI for "$anchor" value "{value}"')
@@ -126,7 +133,8 @@ class DynamicRefKeyword(Keyword):
 
         # this is not required by the spec, but it doesn't make sense
         # for a $dynamicRef *not* to end in a plain-name fragment
-        if (fragment := URI(value).fragment) is None or '/' in fragment:
+        fragment = URI(value).fragment
+        if fragment is None or '/' in fragment:
             raise JSONSchemaError('The value for "$dynamicRef" must end in a plain-name fragment')
 
         self.fragment = fragment
@@ -136,7 +144,8 @@ class DynamicRefKeyword(Keyword):
     def resolve(self) -> None:
         uri = URI(self.json.data)
         if not uri.has_absolute_base():
-            if (base_uri := self.parentschema.base_uri) is not None:
+            base_uri = self.parentschema.base_uri
+            if base_uri is not None:
                 uri = uri.resolve(base_uri)
             else:
                 raise JSONSchemaError(f'No base URI against which to resolve the "$dynamicRef" value "{uri}"')
@@ -144,7 +153,8 @@ class DynamicRefKeyword(Keyword):
         self.refschema = self.parentschema.catalog.get_schema(
             uri, metaschema_uri=self.parentschema.metaschema_uri, session=self.parentschema.session
         )
-        if (dynamic_anchor := self.refschema.get("$dynamicAnchor")) and dynamic_anchor.data == self.fragment:
+        dynamic_anchor = self.refschema.get("$dynamicAnchor")
+        if dynamic_anchor and dynamic_anchor.data == self.fragment:
             self.dynamic = True
 
     def evaluate(self, instance: JSON, result: Result) -> None:
@@ -155,14 +165,16 @@ class DynamicRefKeyword(Keyword):
             checked_uris = set()
 
             while target is not None:
-                if (base_uri := target.schema.base_uri) is not None and base_uri not in checked_uris:
+                base_uri = target.schema.base_uri
+                if base_uri is not None and base_uri not in checked_uris:
                     checked_uris |= {base_uri}
                     target_uri = URI(f"#{self.fragment}").resolve(base_uri)
                     try:
                         found_schema = self.parentschema.catalog.get_schema(
                             target_uri, session=self.parentschema.session
                         )
-                        if (dynamic_anchor := found_schema.get("$dynamicAnchor")) and \
+                        dynamic_anchor = found_schema.get("$dynamicAnchor")
+                        if dynamic_anchor and \
                                 dynamic_anchor.data == self.fragment:
                             refschema = found_schema
                     except CatalogError:
@@ -181,7 +193,8 @@ class DynamicAnchorKeyword(Keyword):
     def __init__(self, parentschema: JSONSchema, value: str):
         super().__init__(parentschema, value)
 
-        if (base_uri := parentschema.base_uri) is not None:
+        base_uri = parentschema.base_uri
+        if base_uri is not None:
             uri = URI(f'{base_uri}#{value}')
         else:
             raise JSONSchemaError(f'No base URI for "$dynamicAnchor" value "{value}"')

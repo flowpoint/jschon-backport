@@ -4,7 +4,8 @@ import sys
 
 from jschon import create_catalog
 
-if _debug := bool(sys.gettrace()):
+_debug = bool(sys.gettrace())
+if _debug: 
     hypothesis.settings.register_profile('debug', deadline=None)
     hypothesis.settings.load_profile('debug')
 else:

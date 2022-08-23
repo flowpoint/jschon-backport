@@ -99,7 +99,8 @@ class ThenKeyword(Keyword, Applicator):
     depends_on = "if",
 
     def evaluate(self, instance: JSON, result: Result) -> None:
-        if (if_ := result.sibling(instance, "if")) and if_.valid:
+        if_ = result.sibling(instance, "if")
+        if if_ and if_.valid:
             self.json.evaluate(instance, result)
         else:
             result.discard()
@@ -110,7 +111,8 @@ class ElseKeyword(Keyword, Applicator):
     depends_on = "if",
 
     def evaluate(self, instance: JSON, result: Result) -> None:
-        if (if_ := result.sibling(instance, "if")) and not if_.valid:
+        if_ = result.sibling(instance, "if")
+        if if_ and not if_.valid:
             self.json.evaluate(instance, result)
         else:
             result.discard()
@@ -166,7 +168,8 @@ class ItemsKeyword(Keyword, Applicator):
     depends_on = "prefixItems",
 
     def evaluate(self, instance: JSON, result: Result) -> None:
-        if prefix_items := result.sibling(instance, "prefixItems"):
+        prefix_items = result.sibling(instance, "prefixItems")
+        if prefix_items: 
             start_index = len(prefix_items.schema_node)
         else:
             start_index = 0
@@ -217,7 +220,9 @@ class UnevaluatedItemsKeyword(Keyword, Applicator):
 
         annotation = None
         error = []
-        for index, item in enumerate(instance[(start := last_evaluated_item + 1):], start):
+        index = last_evaluated_item
+        for item in instance[index + 1:]:
+            index += 1
             if index not in contains_indices:
                 if self.json.evaluate(item, result).passed:
                     annotation = True
@@ -301,12 +306,14 @@ class AdditionalPropertiesKeyword(Keyword, Applicator):
     depends_on = "properties", "patternProperties",
 
     def evaluate(self, instance: JSON, result: Result) -> None:
-        if properties := result.sibling(instance, "properties"):
+        properties = result.sibling(instance, "properties")
+        if properties: 
             known_property_names = properties.schema_node.keys()
         else:
             known_property_names = ()
 
-        if pattern_properties := result.sibling(instance, "patternProperties"):
+        pattern_properties = result.sibling(instance, "patternProperties")
+        if pattern_properties:
             known_property_patterns = pattern_properties.schema_node.keys()
         else:
             known_property_patterns = ()

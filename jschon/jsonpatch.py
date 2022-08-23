@@ -200,7 +200,8 @@ class Node:
             return
 
         try:
-            self.parent = (parent := path[:-1].evaluate(document))
+            parent = path[:-1].evaluate(document)
+            self.parent = parent
             key = path[-1]
         except JSONPointerError as e:
             raise JSONPatchError(f'Expecting an array or object at {path[:-1]}') from e

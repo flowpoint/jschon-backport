@@ -49,7 +49,8 @@ def flag(result: Result) -> JSONCompatible:
 def basic(result: Result) -> JSONCompatible:
     def visit(node: Result):
         if node.valid is valid:
-            if (msgval := getattr(node, msgkey)) is not None:
+            msgval = getattr(node, msgkey)
+            if msgval is not None:
                 yield {
                     "instanceLocation": str(node.instance.path),
                     "keywordLocation": str(node.path),
@@ -81,7 +82,8 @@ def detailed(result: Result) -> JSONCompatible:
         }
         if not output[childkey]:
             del output[childkey]
-            if (msgval := getattr(node, msgkey)) is not None:
+            msgval = getattr(node, msgkey)
+            if msgval is not None:
                 output[msgkey] = msgval
         elif len(output[childkey]) == 1:
             output = output[childkey][0]
@@ -105,19 +107,22 @@ def detailed(result: Result) -> JSONCompatible:
 @output_formatter
 def verbose(result: Result) -> JSONCompatible:
     def visit(node: Result):
+        valid = node.valid
         output = {
-            "valid": (valid := node.valid),
+            "valid": valid, 
             "instanceLocation": str(node.instance.path),
             "keywordLocation": str(node.path),
             "absoluteKeywordLocation": str(node.absolute_uri),
         }
 
         msgkey = "annotation" if valid else "error"
-        if (msgval := getattr(node, msgkey)) is not None:
+        msgval = getattr(node, msgkey)
+        if msgval is not None:
             output[msgkey] = msgval
 
         childkey = "annotations" if valid else "errors"
-        if childarr := [visit(child) for child in node.children.values()]:
+        childarr = [visit(child) for child in node.children.values()]
+        if childarr:
             output[childkey] = childarr
 
         return output

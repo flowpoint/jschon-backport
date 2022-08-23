@@ -23,7 +23,8 @@ class RecursiveRefKeyword_2019_09(Keyword):
         self.refschema = None
 
     def resolve(self) -> None:
-        if (base_uri := self.parentschema.base_uri) is not None:
+        base_uri = self.parentschema.base_uri
+        if base_uri is not None:
             self.refschema = self.parentschema.catalog.get_schema(
                 base_uri, metaschema_uri=self.parentschema.metaschema_uri, session=self.parentschema.session
             )
@@ -32,12 +33,14 @@ class RecursiveRefKeyword_2019_09(Keyword):
 
     def evaluate(self, instance: JSON, result: Result) -> None:
         refschema = self.refschema
-        if (recursive_anchor := refschema.get("$recursiveAnchor")) and \
+        recursive_anchor = refschema.get("$recursiveAnchor")
+        if recursive_anchor and \
                 recursive_anchor.data is True:
 
             target = result
             while target is not None:
-                if (base_anchor := target.schema.get("$recursiveAnchor")) and \
+                base_anchor = target.schema.get("$recursiveAnchor")
+                if base_anchor and \
                         base_anchor.data is True:
                     refschema = target.schema
 
@@ -91,10 +94,13 @@ class AdditionalItemsKeyword_2019_09(Keyword, Applicator):
     depends_on = "items",
 
     def evaluate(self, instance: JSON, result: Result) -> None:
-        if (items := result.sibling(instance, "items")) and type(items.annotation) is int:
+        items = result.sibling(instance, "items")
+        if items and type(items.annotation) is int:
             annotation = None
             error = []
-            for index, item in enumerate(instance[(start := items.annotation + 1):], start):
+            index = items.annotation
+            for item in instance[index+1:]:
+                index += 1
                 if self.json.evaluate(item, result).passed:
                     annotation = True
                 else:
@@ -137,7 +143,9 @@ class UnevaluatedItemsKeyword_2019_09(Keyword, Applicator):
 
         annotation = None
         error = []
-        for index, item in enumerate(instance[(start := last_evaluated_item + 1):], start):
+        index = last_evaluated_item 
+        for item in instance[index+1:]:
+            index += 1
             if self.json.evaluate(item, result).passed:
                 annotation = True
             else:

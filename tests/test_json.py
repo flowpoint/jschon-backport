@@ -107,7 +107,8 @@ def test_dump_json_to_string(value):
 def test_dump_json_to_file(value):
     instance = JSON(value)
     with tempfile.TemporaryDirectory() as tmpdir:
-        instance.dumpf(tmpfile := f'{tmpdir}/dump.json')
+        tmpfile = f'{tmpdir}/dump.json'
+        instance.dumpf(tmpfile)
         with open(tmpfile) as f:
             obj = jsonlib.load(f)
     assert isequal(obj, value)
@@ -168,7 +169,8 @@ def test_insert_json(doc, val, data):
 
     inserted = False
 
-    _cache_json(jdoc := JSON(doc))
+    jdoc = JSON(doc)
+    _cache_json(jdoc)
     _insert_values(doc, jdoc)
 
     assume(inserted)
@@ -201,7 +203,8 @@ def test_set_json(doc, val, data):
 
     updated = False
 
-    _cache_json(jdoc := JSON(doc))
+    jdoc = JSON(doc)
+    _cache_json(jdoc)
     _set_values(doc, jdoc)
 
     assume(updated)
@@ -233,7 +236,8 @@ def test_del_json(doc, data):
 
     deleted = False
 
-    _cache_json(jdoc := JSON(doc))
+    jdoc = JSON(doc)
+    _cache_json(jdoc)
     _del_values(doc, jdoc)
 
     assume(deleted)
