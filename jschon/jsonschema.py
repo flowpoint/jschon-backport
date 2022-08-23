@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections import deque
 from contextlib import contextmanager
-from functools import cached_property
 from typing import Any, ContextManager, Dict, Hashable, Iterator, Mapping, Optional, TYPE_CHECKING, Tuple, Type, Union
 from uuid import uuid4
 
@@ -212,7 +211,7 @@ class JSONSchema(JSON):
 
         return result
 
-    @cached_property
+    @property
     def parentschema(self) -> Optional[JSONSchema]:
         """The containing :class:`JSONSchema` instance.
         
@@ -402,14 +401,14 @@ class Result:
             if child._discard:
                 del self.children[key, instance.path]
 
-    @cached_property
+    @property
     def globals(self) -> Dict:
         root = self
         while root.parent is not None:
             root = root.parent
         return root._globals
 
-    @cached_property
+    @property
     def schema_node(self) -> JSON:
         """Return the current schema node."""
         return self.relpath.evaluate(self.schema)

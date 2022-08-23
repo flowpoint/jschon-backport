@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from collections import deque
-from functools import cached_property
 from os import PathLike
 from typing import Any, Dict, Iterator, List, Mapping, MutableMapping, MutableSequence, Optional, Sequence, Type, Union
 
@@ -137,7 +136,7 @@ class JSON(MutableSequence['JSON'], MutableMapping[str, 'JSON']):
         else:
             raise TypeError(f"{str(value)} is not JSON-compatible")
 
-    @cached_property
+    @property
     def path(self) -> JSONPointer:
         """Return the path to the instance from the document root."""
         keys = deque()
@@ -147,7 +146,7 @@ class JSON(MutableSequence['JSON'], MutableMapping[str, 'JSON']):
             node = node.parent
         return JSONPointer(keys)
 
-    @cached_property
+    @property
     def value(self) -> JSONCompatible:
         """Return the instance data as a JSON-compatible Python object."""
         if isinstance(self.data, list):

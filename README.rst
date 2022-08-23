@@ -1,5 +1,11 @@
-Welcome to jschon!
+Welcome to jschon (backport to 3.7)!
 ==================
+
+Note
+--------
+consider this a temporary/throwaway backport.
+i removed some caching to get it done.
+use at your own risk.
 
 |tests| |codecov| |pypi| |python| |docs| |license|
 
